@@ -1,9 +1,9 @@
-# util
+# xgutil
 Utilities (e.g. MPI and Jax backends, logging, etc.) used for extragalactic sky modeling 
 
 ## Installation
-1. git clone https://github.com/exgalsky/util.git
-2. cd util
+1. git clone https://github.com/exgalsky/xgutil.git
+2. cd xgutil
 3. pip install .
 
 ## Running
