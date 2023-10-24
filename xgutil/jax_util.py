@@ -1,12 +1,11 @@
-import numpy as np
-import jax 
-import os
-
 import logging
 log = logging.getLogger(__name__)
 
 # Copied from TOAST
 def jax_local_device():
+
+    import jax 
+
     """Returns the device currenlty used by JAX."""
     # gets local device if it has been designated
     local_device = jax.config.jax_default_device
@@ -18,6 +17,9 @@ def jax_local_device():
     return local_device
 
 class jax_handler:
+
+    import numpy as np
+    import os
 
     def __init__(self, force_no_gpu=False,mpi_backend=None,max_GPU_mem_GB=40.0,
                  preallocate=False,allocator_platform=False):
