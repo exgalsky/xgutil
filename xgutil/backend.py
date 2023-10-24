@@ -1,6 +1,6 @@
-import mpi_utils as mutl
-import jax_utils as jutl 
-import log_utils as lutl
+import .mpi_utils as mutl
+import .jax_utils as jutl
+import .log_utils as lutl
 import logging
 import numpy as np
 
@@ -8,7 +8,7 @@ uSky_WARN_level = logging.WARN + 7
 uSky_INFO_level = logging.WARN + 5
 uSky_DEBUG_level = logging.WARN - 5
 
-class backend:
+class Backend:
     def __init__(self, logging_level=1, force_no_mpi=False, force_no_gpu=False):
         lutl.addLoggingLevel('lptmap_WARNING', uSky_WARN_level, methodName='usky_warn')
         lutl.addLoggingLevel('lptmap_INFO', uSky_INFO_level, methodName='usky_info')
