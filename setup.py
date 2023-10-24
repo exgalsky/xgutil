@@ -1,10 +1,10 @@
 from setuptools import setup
-pname='util'
+pname='xgutil'
 setup(name=pname,
       version='0.1',
       description='Utilities for extragalactic sky modeling',
-      url='http://github.com/exgalsky/util',
+      url='http://github.com/exgalsky/xgutil',
       author='exgalsky collaboration',
       license_files = ('LICENSE',),
-      packages=['util'],
+      packages=[pname],
       zip_safe=False)
