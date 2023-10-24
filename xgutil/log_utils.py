@@ -62,3 +62,29 @@ def log_wrapper(logger, message, *args, exception_info=False, level='usky_warn')
 
     if level.lower() == 'info': logger.info(message, *args, exc_info=exception_info)                # level 20
     if level.lower() == 'debug': logger.debug(message, *args, exc_info=exception_info)              # level 10
+
+def parprint(*args,**kwargs):
+    import sys
+    print("".join(map(str,args)),**kwargs);  sys.stdout.flush()
+
+def profiletime(task_tag, step, times, comm=None, mpiproc=0):
+    if comm is not None:
+        comm.Barrier()
+
+    dt = time() - times['t0']
+    if step in times.keys():
+        times[step] += dt
+    else:
+        times[step] = dt
+    times['t0'] = time()
+
+    if mpiproc!=0:
+        return times
+
+    if task_tag is not None:
+        parprint(f'{task_tag}: {dt:.6f} sec for {step}')
+    else:
+        parprint(f'{dt:.6f} sec for {step}')
+    parprint("")
+
+    return times
