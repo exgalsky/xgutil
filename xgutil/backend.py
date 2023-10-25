@@ -1,4 +1,5 @@
 import logging
+from xgutil.log_util import parprint
 
 uSky_WARN_level = logging.WARN + 7
 uSky_INFO_level = logging.WARN + 5
@@ -6,13 +7,13 @@ uSky_DEBUG_level = logging.WARN - 5
 
 class Backend:
 
-    import numpy as np
-
-    import xgutil.mpi_util as mutl
-    import xgutil.jax_util as jutl
-    import xgutil.log_util as lutl
-
     def __init__(self, logging_level=1, force_no_mpi=False, force_no_gpu=False):
+
+        import numpy as np
+        import xgutil.mpi_util as mutl
+        import xgutil.jax_util as jutl
+        import xgutil.log_util as lutl
+
         lutl.addLoggingLevel('lptmap_WARNING', uSky_WARN_level, methodName='usky_warn')
         lutl.addLoggingLevel('lptmap_INFO', uSky_INFO_level, methodName='usky_info')
         lutl.addLoggingLevel('lptmap_DEBUG', uSky_DEBUG_level, methodName='usky_debug')
@@ -22,6 +23,7 @@ class Backend:
         if logging_level == 2: loglev=uSky_DEBUG_level
         if logging_level == 3: loglev=logging.WARN
         if logging_level == 4: loglev=logging.DEBUG
+        if logging_level  < 0: loglev=-logging_level
 
         logging.basicConfig(level=loglev)
 
@@ -29,10 +31,14 @@ class Backend:
         self.jax_backend = jutl.jax_handler(force_no_gpu=force_no_gpu,mpi_backend=self.mpi_backend)
 
     def print2log(self, logger, message, *args, exception_info=False, level='usky_warn', per_task=False):
+
+        import xgutil.jax_util as jutl
+        import xgutil.log_util as lutl
+
         if per_task:
             message = f"MPI ProcID: { self.mpi_backend.id }, JAX device: { jutl.jax_local_device() }, { message } "
             lutl.log_wrapper(logger, message, *args, exception_info=exception_info, level=level)
-            
+
         elif self.mpi_backend.id == self.mpi_backend.root:
             lutl.log_wrapper(logger, message, *args, exception_info=exception_info, level=level)
 
@@ -51,7 +57,7 @@ class Backend:
         self.__jslice_shape[divide_axis] = -1
 
     def get_iterator(self):
-
+        import numpy as np
         iterator = []
         for ijax in range(self.jax_backend.n_jaxcalls):
             start = self.mpi_start + np.sum(self.jax_backend.slices_per_jaxcall[0:ijax])

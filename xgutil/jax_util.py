@@ -1,11 +1,7 @@
-import logging
-log = logging.getLogger(__name__)
-
+from xgutil.log_util import parprint
 # Copied from TOAST
 def jax_local_device():
-
-    import jax 
-
+    import jax
     """Returns the device currenlty used by JAX."""
     # gets local device if it has been designated
     local_device = jax.config.jax_default_device
@@ -18,11 +14,13 @@ def jax_local_device():
 
 class jax_handler:
 
-    import numpy as np
-    import os
-
     def __init__(self, force_no_gpu=False,mpi_backend=None,max_GPU_mem_GB=40.0,
                  preallocate=False,allocator_platform=False):
+
+        import os
+
+        import logging
+        log = logging.getLogger(__name__)
 
         if preallocate:
             os.environ["XLA_PYTHON_CLIENT_PREALLOCATE"] = "false"
@@ -49,20 +47,26 @@ class jax_handler:
                 
         self.ndevices = len(self.gpus)
 
+        import jax
+        jax.config.update("jax_enable_x64", False)
+
         if self.ndevices > 1:
             log.usky_warn(f"Multiple GPU devices per processes is not supported at the moment. Using GPU device 0 only. \n To change this, divide the node to as many processes per node as there are GPU devices.")
-            
         elif self.ndevices == 1:
             jax.distributed.initialize(local_device_ids=self.gpus[0].id)
 
-        jax.config.update("jax_enable_x64", False)
-        log.usky_info(f"JAX backend device set to: { jax_local_device() }")
+        if logging.INFO >= logging.root.level:
+            log.INFO(f"JAX backend device set to: { jax_local_device() }")
             
         self.task_tag = "serial task"
         if self.mpi_backend is not None:
             self.task_tag = self.mpi_backend.rank_tag
 
     def jax_tasks(self, block_shape, peak_per_cell_memory, jax_overhead_factor, divide_axis=0):
+
+        import numpy as np
+        import logging
+        log = logging.getLogger(__name__)
 
         total_memory_required = block_shape[0] * block_shape[1] * block_shape[2] * peak_per_cell_memory * jax_overhead_factor
         log.usky_info(f"  {self.task_tag}: total_memory_required = {total_memory_required}")
@@ -98,6 +102,7 @@ class jax_handler:
         del task_min
     
     def jax_data_offset(self, chunk_shape, bytes_per_cell, mpi_offset=0, divide_axis=0, decom_type='slab'):
+        import numpy as np
         undiv_axes_prod = 1.
         for i in range(len(chunk_shape)):
             if i != divide_axis: undiv_axes_prod *= chunk_shape[i] 

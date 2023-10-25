@@ -1,23 +1,21 @@
-import numpy as np 
-import healpy as hp
 
-import logging
-log = logging.getLogger(__name__)
-
-run_with_mpi = True
-if run_with_mpi:
-    try: 
-        from mpi4py import MPI
-    except:
-        log.usky_warn("WARNING: mpi4py not found, fallback to serial implementation.")  # todo: Replace print warning messages with proper logging implementation
-        run_with_mpi = False
 
 # MPI communicator initialization
 
 class mpi_handler():
 
     def __init__(self, force_no_mpi=False): 
-        self.__run_with_mpi = run_with_mpi 
+
+        import logging
+        log = logging.getLogger(__name__)
+
+        self.__run_with_mpi = True
+        try:
+            from mpi4py import MPI
+        except:
+            log.usky_warn("WARNING: mpi4py not found, fallback to serial implementation.")  # todo: Replace print warning messages with proper logging implementation
+            self.__run_with_mpi = False
+
         self.root = 0
         if force_no_mpi: self.__run_with_mpi = False
         if self.__run_with_mpi:
@@ -30,7 +28,11 @@ class mpi_handler():
             self.id = 0
             self.numProc = 1 
             self.rank_tag = f"serial task"
+
     def divide4mpi(self, data_shape, decom_type='slab', divide_axis=0):
+        import numpy as np
+        import logging
+        log = logging.getLogger(__name__)
 
         if decom_type.lower() == 'slab':
             
@@ -70,6 +72,7 @@ class mpi_handler():
             pass
 
     def data_offset(self, data_shape, bytes_per_cell, divide_axis=0, decom_type='slab'):
+        import numpy as np
         undiv_axes_prod = 1.
         for i in range(len(data_shape)):
             if i != divide_axis: undiv_axes_prod *= data_shape[i] 
@@ -78,6 +81,7 @@ class mpi_handler():
             return np.int64(np.sum(self.slab_per_Proc[0:self.id]) * undiv_axes_prod * bytes_per_cell)
         
     def reduce2map(self, map_in_proc):
+        import numpy as np
         if self.id == self.root:
             reduced_map = np.zeros(map_in_proc.shape)
         else:
@@ -93,7 +97,7 @@ class mpi_handler():
         return reduced_map
             
     def writemap2file(self, map2write, filename, overwrite=True):
-
+        import healpy as hp
         if (self.id == self.root):
             hp.write_map(filename, map2write, dtype=map2write.dtype, overwrite=overwrite)
 
