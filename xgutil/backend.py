@@ -69,7 +69,7 @@ class Backend:
             shape[shape == -1] = self.jax_backend.slices_per_jaxcall[ijax]
             shape = tuple(shape)
 
-            iterator.append([start, stop, offset, shape])
+            iterator.append({"start":start, "stop":stop, "offset":offset, "shape":shape})
 
         return iterator
         

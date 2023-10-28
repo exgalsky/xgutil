@@ -1,20 +1,20 @@
-
-
 # MPI communicator initialization
+
+import logging
+log = logging.getLogger(__name__)
+
+run_with_mpi = True
+try:
+    from mpi4py import MPI
+except:
+    log.usky_warn("WARNING: mpi4py not found, fallback to serial implementation.")  # todo: Replace print warning messages with proper logging implementation
+    run_with_mpi = False
 
 class mpi_handler():
 
     def __init__(self, force_no_mpi=False): 
 
-        import logging
-        log = logging.getLogger(__name__)
-
-        self.__run_with_mpi = True
-        try:
-            from mpi4py import MPI
-        except:
-            log.usky_warn("WARNING: mpi4py not found, fallback to serial implementation.")  # todo: Replace print warning messages with proper logging implementation
-            self.__run_with_mpi = False
+        self.__run_with_mpi = run_with_mpi
 
         self.root = 0
         if force_no_mpi: self.__run_with_mpi = False

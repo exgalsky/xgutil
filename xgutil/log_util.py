@@ -68,6 +68,7 @@ def parprint(*args,**kwargs):
     print("".join(map(str,args)),**kwargs);  sys.stdout.flush()
 
 def profiletime(task_tag, step, times, comm=None, mpiproc=0):
+    from time import time
     if comm is not None:
         comm.Barrier()
 
