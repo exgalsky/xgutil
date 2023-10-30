@@ -28,12 +28,12 @@ def addLoggingLevel(levelName, levelNum, methodName=None):
     if not methodName:
         methodName = levelName.lower()
 
-    if hasattr(logging, levelName):
-       raise AttributeError('{} already defined in logging module'.format(levelName))
-    if hasattr(logging, methodName):
-       raise AttributeError('{} already defined in logging module'.format(methodName))
-    if hasattr(logging.getLoggerClass(), methodName):
-       raise AttributeError('{} already defined in logger class'.format(methodName))
+    # if hasattr(logging, levelName):
+    #    raise AttributeError('{} already defined in logging module'.format(levelName))
+    # if hasattr(logging, methodName):
+    #    raise AttributeError('{} already defined in logging module'.format(methodName))
+    # if hasattr(logging.getLoggerClass(), methodName):
+    #    raise AttributeError('{} already defined in logger class'.format(methodName))
 
     # This method was inspired by the answers to Stack Overflow post
     # http://stackoverflow.com/q/2183233/2988730, especially
@@ -72,20 +72,43 @@ def profiletime(task_tag, step, times, comm=None, mpiproc=0):
     if comm is not None:
         comm.Barrier()
 
+    stepn=step+'_N'
     dt = time() - times['t0']
     if step in times.keys():
-        times[step] += dt
+        times[step]  += dt
+        times[stepn] += 1
     else:
-        times[step] = dt
+        times[step]  = dt
+        times[stepn] = 1
     times['t0'] = time()
 
     if mpiproc!=0:
         return times
 
     if task_tag is not None:
-        parprint(f'{task_tag}: {dt:.6f} sec for {step}')
+        parprint(f'{task_tag}: {dt:.6f} sec for iteration {times[stepn]} {step}')
     else:
         parprint(f'{dt:.6f} sec for {step}')
-    parprint("")
+    #parprint("")
 
     return times
+
+def _sortdict(dictin,reverse=False):
+    return dict(sorted(dictin.items(), key=lambda item: item[1], reverse=reverse))
+
+def summarizetime(task_tag, times, comm=None, mpiproc=0):
+    total_time = 0
+
+    if comm is not None:
+        comm.Barrier()
+    if mpiproc!=0:
+        return times
+
+    parprint('\nTime summary:')
+    for key in _sortdict(times,reverse=True).keys():
+        if key != 't0' and key[-2:] != '_N':
+            N = times[key+'_N']
+            dtbar = times[key]/N
+            parprint(f'  {dtbar:.5e} per {N} iterations of {key}')
+            total_time += times[key]
+    parprint(f'\n  {total_time:.5e} all steps')
