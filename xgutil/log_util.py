@@ -69,8 +69,12 @@ def parprint(*args,**kwargs):
 
 def profiletime(task_tag, step, times, comm=None, mpiproc=0):
     from time import time
+
     if comm is not None:
         comm.Barrier()
+    else:
+        from jax.experimental.multihost_utils import sync_global_devices
+        sync_global_devices('log')
 
     stepn=step+'_N'
     dt = time() - times['t0']

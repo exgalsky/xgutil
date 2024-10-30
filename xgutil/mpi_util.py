@@ -7,7 +7,7 @@ run_with_mpi = True
 try:
     from mpi4py import MPI
 except:
-    log.usky_warn("WARNING: mpi4py not found, fallback to serial implementation.")  # todo: Replace print warning messages with proper logging implementation
+    #log.WARN("WARNING: mpi4py not found, fallback to serial implementation.")  # todo: Replace print warning messages with proper logging implementation
     run_with_mpi = False
 
 class mpi_handler():
