@@ -7,7 +7,7 @@ uSky_DEBUG_level = logging.WARN - 5
 
 class Backend:
 
-    def __init__(self, logging_level=1, force_no_mpi=False, force_no_gpu=False):
+    def __init__(self, logging_level=1, force_no_mpi=False, force_no_gpu=False, no_preallocate=True):
 
         import numpy as np
         import xgutil.mpi_util as mutl
@@ -28,7 +28,7 @@ class Backend:
         logging.basicConfig(level=loglev)
 
         self.mpi_backend = mutl.mpi_handler(force_no_mpi=force_no_mpi)
-        self.jax_backend = jutl.jax_handler(force_no_gpu=force_no_gpu,mpi_backend=self.mpi_backend)
+        self.jax_backend = jutl.jax_handler(force_no_gpu=force_no_gpu,no_preallocate=no_preallocate,mpi_backend=self.mpi_backend)
 
     def print2log(self, logger, message, *args, exception_info=False, level='usky_warn', per_task=False):
 

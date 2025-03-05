@@ -15,14 +15,14 @@ def jax_local_device():
 class jax_handler:
 
     def __init__(self, force_no_gpu=False,mpi_backend=None,max_GPU_mem_GB=40.0,
-                 preallocate=False,allocator_platform=False):
+                 no_preallocate=False,allocator_platform=False):
 
         import os
 
         import logging
         log = logging.getLogger(__name__)
 
-        if preallocate:
+        if no_preallocate:
             os.environ["XLA_PYTHON_CLIENT_PREALLOCATE"] = "false"
         if allocator_platform:
             os.environ["XLA_PYTHON_CLIENT_ALLOCATOR"] = "platform"
@@ -34,29 +34,32 @@ class jax_handler:
 
         if force_no_gpu: 
             os.environ["JAX_PLATFORM_NAME"] = "cpu"
-            
+            self.ndevices = 0
         else:
-            try:
-                import GPUtil
-                self.GPU_available = True
-                self.gpus = GPUtil.getGPUs()
+            
+            # try:
+            #     import jax
+            #     self.gpus = jax.devices(backend="gpu")
                 
-            except:
+            # except:
                 
-                log.usky_warn(f"GPUtil not found. Assuming no GPUs are presentent and falling back to CPU. \n If GPUs are present then ensure GPUtil is installed to intialize JAX on the GPU.")
+            #     log.usky_warn(f"GPUtil not found. Assuming no GPUs are presentent and falling back to CPU. \n If GPUs are present then ensure GPUtil is installed to intialize JAX on the GPU.")
                 
-        self.ndevices = len(self.gpus)
+            self.ndevices = int(os.environ["XGSMENV_NGPUS"])
 
         import jax
         jax.config.update("jax_enable_x64", False)
 
         if self.ndevices > 1:
-            log.usky_warn(f"Multiple GPU devices per processes is not supported at the moment. Using GPU device 0 only. \n To change this, divide the node to as many processes per node as there are GPU devices.")
+            # log.usky_info(f"JAX distributed initialization with {self.ndevices} devices")
+            jax.distributed.initialize()
+            print("After distributed init, devices:", jax.device_count())
+            # log.usky_warn(f"Multiple GPU devices per processes is not supported at the moment. Using GPU device 0 only. \n To change this, divide the node to as many processes per node as there are GPU devices.")
         elif self.ndevices == 1:
             jax.distributed.initialize(local_device_ids=self.gpus[0].id)
 
-        if logging.INFO >= logging.root.level:
-            log.INFO(f"JAX backend device set to: { jax_local_device() }")
+        # if logging.INFO >= logging.root.level:
+        #     log.INFO(f"JAX backend device set to: { jax_local_device() }")
             
         self.task_tag = "serial task"
         if self.mpi_backend is not None:
